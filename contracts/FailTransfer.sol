@@ -1,0 +1,5 @@
+contract FailTransfer {
+  function () {
+    throw;
+  }
+}

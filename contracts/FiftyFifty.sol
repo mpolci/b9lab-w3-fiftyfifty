@@ -21,7 +21,7 @@ contract FiftyFifty {
     return true;
   }
 
-  function changeAddress(address newAddr) {
+  function changeAddress(address newAddr) returns (bool) {
     address oldAddr;
     if (msg.sender == A) {
       oldAddr = A;
@@ -29,10 +29,13 @@ contract FiftyFifty {
     } else if (msg.sender == B) {
       oldAddr = B;
       B = msg.sender;
-    } else throw;
+    } else {
+      throw;
+    }
     uint u = unsent[oldAddr];
     delete unsent[oldAddr];
     unsent[msg.sender] = u;
+    return true;
   }
 
   function getToDistribute() returns (uint) {
