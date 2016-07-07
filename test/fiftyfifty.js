@@ -1,3 +1,4 @@
+
 contract('FiftyFifty', function(accounts) {
   var ff;
   var args;
@@ -15,10 +16,8 @@ contract('FiftyFifty', function(accounts) {
         .then(function(){done()}).catch(done);
     });
     it('shold not be called two times', function (done) {
-
       FiftyFifty.new(args).catch(done).then(function (contract) {
         var ff = contract;
-
         ff.setOwners(accounts[0], accounts[1], args)
           .catch(done)
           .then(function () {

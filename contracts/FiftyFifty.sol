@@ -13,11 +13,26 @@ contract FiftyFifty {
     return [A, B];
   }
 
-  function setOwners(address first, address second) {
+  function setOwners(address first, address second) returns (bool){
     if (first == 0 || second == 0) throw;
-    if (msg.sender != A && B != 0) throw;
+    if (msg.sender != A || B != 0) throw;
     A = first;
     B = second;
+    return true;
+  }
+
+  function changeAddress(address newAddr) {
+    address oldAddr;
+    if (msg.sender == A) {
+      oldAddr = A;
+      A = msg.sender;
+    } else if (msg.sender == B) {
+      oldAddr = B;
+      B = msg.sender;
+    } else throw;
+    uint u = unsent[oldAddr];
+    delete unsent[oldAddr];
+    unsent[msg.sender] = u;
   }
 
   function getToDistribute() returns (uint) {
