@@ -18,6 +18,7 @@ angular.module('fiftyFiftyApp')
       addr2: ''
     },
     changeAddressInput: '',
+    error: null,
 
     doRefresh: doRefresh,
     doSendToContract: doSendToContract,
@@ -50,6 +51,7 @@ angular.module('fiftyFiftyApp')
   }
 
   function doRefresh () {
+    self.error = null
     refreshSelectedBalance()
     self.contractAddress = contract.address
     web3.eth.getBalance(contract.address, function (err, value) {
@@ -78,42 +80,41 @@ angular.module('fiftyFiftyApp')
   }
 
   function doSendToContract () {
-    if (!self.selectedAccount) return
+    if (!self.selectedAccount) return selectedAccountError()
     web3.eth.sendTransaction({
       from: self.selectedAccount,
       to: self.contractAddress,
       value: self.sendAmountInput
     }, function (err, txid) {
-      if (err) return console.error(err)
-      console.log('New transaction: ' + txid)
-      doRefresh()
+      if (err) return handleError(err, 'tx-fail')
+      logTxAndRefresh(txid)
     })
   }
 
   function doDistribute () {
-    if (!self.selectedAccount) return
-    contract.distribute({ from: self.selectedAccount })
-    .then(logTxAndRefresh)
-    .catch(console.error)
+    callContract({
+      method: 'distribute',
+      args: []
+    })
   }
 
   function doSetOwners () {
-    if (!self.selectedAccount) return
-    contract.setOwners(self.setOwnersInputs.addr1, self.setOwnersInputs.addr2,
-                       { from: self.selectedAccount })
-    .then(logTxAndRefresh)
-    .catch(console.error)
+    callContract({
+      method: 'setOwners',
+      args: [self.setOwnersInputs.addr1, self.setOwnersInputs.addr2]
+    })
   }
 
   function doChangeAddress () {
-    if (!self.selectedAccount) return
-    contract.changeAddress(self.changeAddressInput, { from: self.selectedAccount })
-    .then(logTxAndRefresh)
-    .catch(console.error)
+    callContract({
+      method: 'changeAddress',
+      args: [self.changeAddressInput]
+    })
   }
 
   function doDeployNewContract () {
-    if (!self.selectedAccount) return
+    if (!self.selectedAccount) return selectedAccountError()
+
     FiftyFifty.new({from: self.selectedAccount})
     .then(function (newContract) {
       contract = newContract
@@ -124,6 +125,24 @@ angular.module('fiftyFiftyApp')
   }
 
   /*********************************************************/
+
+  function callContract(callopts) {
+    if (!self.selectedAccount) return selectedAccountError()
+    callopts.args.push({ from: self.selectedAccount })
+    try {
+      console.log('Contract call simulation:', callopts)
+      var method = contract[callopts.method]
+      method.call.apply(method, callopts.args)
+      .then(function (result) {
+        console.log('Simulation result:', result)
+        return method.apply(contract, callopts.args)
+      })
+      .then(logTxAndRefresh)
+      .catch(e => handleError(e, 'tx-fail'))
+    } catch (e) {
+      handleError(e, 'call-fail')
+    }
+  }
 
   function set (item, value) {
     self[item] = value
@@ -142,24 +161,17 @@ angular.module('fiftyFiftyApp')
     return null
   }
 
-  function callContract(callopts) {
-    if (!self.selectedAccount) return
-    function handleError(e) {
-      console.error(e)
-    }
-    try {
-      contract[callopts.method].call(callopts.args)
-      .then(function (result) {
-        console.log('Contract call simulation:', callopts, result)
-        return contract[callopts.method](callopts.args)
-      })
-      .then(logTxAndRefresh)
-      .catch(handleError)
-    } catch (e) {
-      handleError(e)
-    }
-    return new Promise(function(resolve, reject) {
-
-    })
+  function selectedAccountError() {
+    console.error('Account needed to interoperate with the contract');
+    self.error = 'account'
   }
+
+  function handleError(e, errid) {
+    console.error(e)
+    self.error = errid || (e.message && e.message.startsWith('Error: VM Exception while executing eth_call'))
+      ? 'call-fail'
+      : 'generic'
+    $scope.$apply()
+  }
+
 })

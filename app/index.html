@@ -3,8 +3,8 @@
 <head>
   <title>FiftyFifty App</title>
   <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.7/angular.min.js"></script>
-  <!-- <script src="https://ajax.googleapis.com/ajax/libs/angular_material/1.1.0-rc.5/angular-material.min.js"></script> -->
   <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+  <link href="./app.css" rel='stylesheet' type='text/css'>
   <script src="./app.js"></script>
   <script src="./fiftyfifty.js"></script>
 </head>
@@ -21,32 +21,41 @@
   <br>
 
   <h2>Controls</h2>
-  <p><button ng-click="ff.doRefresh()">Refresh</button></p>
-  <p>
+  <div class="action"><button ng-click="ff.doRefresh()">Refresh</button></div>
+  <div class="action">
     <label for="account">Select a control account before interacting with the contract: </label>
     <select id="account" ng-model="ff.selectedAccount">
       <option ng-repeat="a in ff.accounts" value="{{a}}">{{ $index }}</option>
     </select>
-    <span> Address: {{ ff.selectedAccount }} balance: {{ ff.selectedBalance }} </span>
-  </p>
-  <p>
+    <div class="info">
+      <span>Address: {{ ff.selectedAccount }}</span>
+      <span>balance: {{ ff.selectedBalance }}</span>
+    </div>
+  </div>
+  <div class="action">
     <label for="addr1">New ownsers (only if no owners): </label>
     <input id="addr1" type="text" ng-model="ff.setOwnersInputs.addr1">
     <input id="addr2" type="text" ng-model="ff.setOwnersInputs.addr2">
     <button ng-click="ff.doSetOwners()">Set</button>
-  </p>
-  <p>
+  </div>
+  <div class="action">
     <label for="send-amount">Amount: </label>
     <input id="send-amount" type="text" ng-model="ff.sendAmountInput">
     <button ng-click="ff.doSendToContract()">Send</button>
-  </p>
-  <p>
+  </div>
+  <div class="action">
     <label for="change-address">New address (only owners allowed): </label>
     <input id="change-address" type="text" ng-model="ff.changeAddressInput">
     <button ng-click="ff.doChangeAddress()">Change</button>
-  </p>
-  <p><button ng-click="ff.doDistribute()">Distribute ethers to owners</button></p>
-  <p><button ng-click="ff.doDeployNewContract()">Deploy a new contract instance</button></p>
+  </div>
+  <div class="action"><button ng-click="ff.doDistribute()">Distribute ethers to owners</button></div>
+  <div class="action"><button ng-click="ff.doDeployNewContract()">Deploy a new contract instance</button></div>
 
+  <div ng-switch on="ff.error" class="error">
+    <div ng-switch-when="account">Please select an account originating the transactions.</div>
+    <div ng-switch-when="call-fail">This contract call will fail, the transaction has not been sent.</div>
+    <div ng-switch-when="tx-fail">The transaction send returned an error. Warning! You may have paid fees.</div>
+    <div ng-switch-when="generic">Error! See console for details.</div>
+  </div>
 </body>
 </html>
