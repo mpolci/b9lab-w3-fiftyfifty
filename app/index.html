@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html ng-app="fiftyFiftyApp">
+<head>
+  <title>FiftyFifty App</title>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.7/angular.min.js"></script>
+  <!-- <script src="https://ajax.googleapis.com/ajax/libs/angular_material/1.1.0-rc.5/angular-material.min.js"></script> -->
+  <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+  <script src="./app.js"></script>
+  <script src="./fiftyfifty.js"></script>
+</head>
+<body ng-controller="FiftyFiftyController as ff">
+  <h1>FiftyFifty</h1>
+  <h2>Info</h2>
+  <ul>
+    <li>Contract address: {{ ff.contractAddress }}</li>
+    <li>Contract balance: {{ ff.contractBalance }}</li>
+    <li>Contract owners: {{ ff.owners }}</li>
+    <li>Owners balances: {{ ff.ownersBalances }}</li>
+    <li>Owed to owners: {{ ff.owedBalances }}</li>
+  </ul>
+  <br>
+
+  <h2>Controls</h2>
+  <p><button ng-click="ff.doRefresh()">Refresh</button></p>
+  <p>
+    <label for="account">Select a control account before interacting with the contract: </label>
+    <select id="account" ng-model="ff.selectedAccount">
+      <option ng-repeat="a in ff.accounts" value="{{a}}">{{ $index }}</option>
+    </select>
+    <span> Address: {{ ff.selectedAccount }} balance: {{ ff.selectedBalance }} </span>
+  </p>
+  <p>
+    <label for="addr1">New ownsers (only if no owners): </label>
+    <input id="addr1" type="text" ng-model="ff.setOwnersInputs.addr1">
+    <input id="addr2" type="text" ng-model="ff.setOwnersInputs.addr2">
+    <button ng-click="ff.doSetOwners()">Set</button>
+  </p>
+  <p>
+    <label for="send-amount">Amount: </label>
+    <input id="send-amount" type="text" ng-model="ff.sendAmountInput">
+    <button ng-click="ff.doSendToContract()">Send</button>
+  </p>
+  <p>
+    <label for="change-address">New address (only owners allowed): </label>
+    <input id="change-address" type="text" ng-model="ff.changeAddressInput">
+    <button ng-click="ff.doChangeAddress()">Change</button>
+  </p>
+  <p><button ng-click="ff.doDistribute()">Distribute ethers to owners</button></p>
+  <p><button ng-click="ff.doDeployNewContract()">Deploy a new contract instance</button></p>
+
+</body>
+</html>

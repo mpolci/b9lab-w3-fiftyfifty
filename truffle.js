@@ -4,6 +4,9 @@ module.exports = {
     "app.js": [
       "javascripts/app.js"
     ],
+    "fiftyfifty.js": [
+      "javascripts/fiftyfifty.js"
+    ],
     "app.css": [
       "stylesheets/app.css"
     ],
