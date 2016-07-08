@@ -21,7 +21,10 @@
   <br>
 
   <h2>Controls</h2>
-  <div class="action"><button ng-click="ff.doRefresh()">Refresh</button></div>
+  <div class="action">
+    <button ng-click="ff.doRefresh()">Refresh</button>
+    <span>You need a manual refresh if you are using a real ethereum node. Not needed with testrpc.
+  </div>
   <div class="action">
     <label for="account">Select a control account before interacting with the contract: </label>
     <select id="account" ng-model="ff.selectedAccount">
