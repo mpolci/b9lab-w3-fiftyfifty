@@ -5,7 +5,7 @@ contract FiftyFifty {
   mapping (address => uint) unsent;
 
   function FiftyFifty(address first, address second) {
-    A = first != 0 ? A : msg.sender;
+    A = first;
     B = second;
   }
 
@@ -15,7 +15,7 @@ contract FiftyFifty {
 
   function setOwners(address first, address second) returns (bool){
     if (first == 0 || second == 0) throw;
-    if (msg.sender != A || B != 0) throw;
+    if (A != 0 && B != 0) throw;
     A = first;
     B = second;
     return true;
@@ -25,10 +25,10 @@ contract FiftyFifty {
     address oldAddr;
     if (msg.sender == A) {
       oldAddr = A;
-      A = msg.sender;
+      A = newAddr;
     } else if (msg.sender == B) {
       oldAddr = B;
-      B = msg.sender;
+      B = newAddr;
     } else {
       throw;
     }

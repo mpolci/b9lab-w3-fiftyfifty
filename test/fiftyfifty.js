@@ -11,15 +11,6 @@ contract('FiftyFifty', accounts => {
     })
   })
   describe('setOwners', () => {
-    it('shoul not be called by a different owner', done => {
-      try {
-        FiftyFifty.deployed().setOwners(accounts[0], accounts[1], {from: accounts[1]})
-        .then(() => {
-          done('error: setOwners called by wrong owner')
-        })
-        .catch(() => done())
-      } catch (e) { done() }
-    })
     it('should call setOwners', done => {
       FiftyFifty.deployed().setOwners(accounts[0], accounts[1], args)
         .then(() => done()).catch(done)
@@ -46,11 +37,31 @@ contract('FiftyFifty', accounts => {
       .catch(done)
       .then(() => done())
     })
+    it('should change first owner', done => {
+      ff.changeAddress(accounts[2], {from: accounts[0]})
+      .catch((done))
+      .then(() => ff.getOwners.call())
+      .then((owners) => {
+        assert.equal(owners[0], accounts[2])
+        assert.equal(owners[1], accounts[1])
+        done()
+      })
+    })
     it('should be called by second owner', done => {
       ff.changeAddress(accounts[2], {from: accounts[1]})
       .catch(done)
       .then(txid => {
         assert.isDefined(txid)
+        done()
+      })
+    })
+    it('should change second owner', done => {
+      ff.changeAddress(accounts[2], {from: accounts[1]})
+      .catch((done))
+      .then(() => ff.getOwners.call())
+      .then((owners) => {
+        assert.equal(owners[1], accounts[2])
+        assert.equal(owners[0], accounts[0])
         done()
       })
     })
