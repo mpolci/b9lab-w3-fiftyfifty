@@ -61,7 +61,7 @@ angular.module('fiftyFiftyApp')
     contract.getOwners.call()
     .then(function (owners) {
       set('owners', owners)
-      ;[0,1].map(function (i) {
+      ;[0,1].forEach(function (i) {
         var owner = owners[i];
         web3.eth.getBalance(owner, function (err, value) {
           if (err) return console.error(err)

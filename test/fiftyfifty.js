@@ -11,9 +11,14 @@ contract('FiftyFifty', accounts => {
     })
   })
   describe('setOwners', () => {
-    it('should call setOwners', done => {
+    it('should set owners', done => {
       FiftyFifty.deployed().setOwners(accounts[0], accounts[1], args)
-        .then(() => done()).catch(done)
+      .then(() => FiftyFifty.deployed().getOwners.call())
+      .then(owners => {
+        assert.equal(owners[0], accounts[0])
+        assert.equal(owners[1], accounts[1])
+        done()
+      }).catch(done)
     })
     it('shold not be called two times', done => {
       var ff
