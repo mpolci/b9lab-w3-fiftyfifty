@@ -141,47 +141,56 @@ contract('FiftyFifty', accounts => {
   })
 
   describe('distribute with a failing address', () => {
-    var balances = []
     var failContract
     var tests = [
-      {addr: 'failing address', expected: 0, balance: null},
-      {addr: accounts[1], expected: 5, balance: null}
+      {descr: 'infinite loop', fc: 'FailTransfer2', addr: 'failing address', expected: 0},
+      {descr: 'infinite loop', fc: 'FailTransfer2', addr: 'normal address', expected: 5},
+      {descr: 'throw', fc: 'FailTransfer', addr: 'failing address', expected: 0},
+      {descr: 'throw', fc: 'FailTransfer', addr: 'normal address', expected: 5},
     ]
-    beforeEach(done => {
+
+    function initFailingHelper(testCase, done) {
+      data = Object.assign({}, testCase)
       args = { from: accounts[0] }
-      FailTransfer.new(args)
+      global[testCase.fc].new(args)
       .then(contract => {
         failContract = contract
-        tests[0].addr = contract.address
-        return FiftyFifty.new(failContract.address, accounts[1], args)
+        data.addr = testCase.addr === 'failing address'
+          ? contract.address
+          : accounts[1]
+        return FiftyFifty.new(contract.address, accounts[1], args)
       })
       .then(contract => {
         ff = contract
         var txid = web3.eth.sendTransaction({from: accounts[0], to: ff.address, value: 10})
         assert.isString(txid)
-        tests[0].balance = web3.eth.getBalance(tests[0].addr)
-        tests[1].balance = web3.eth.getBalance(tests[1].addr)
-        done()
+        data.balance = web3.eth.getBalance(data.addr)
+        done(data)
       })
       .catch(done)
-    })
+    }
     tests.forEach(testCase => {
-      it(`should send ${testCase.expected} to ${testCase.addr}`, done => {
-        ff.distribute({from: accounts[2]}).catch(done)
-        .then(() => {
-          var newBalance =  web3.eth.getBalance(testCase.addr)
-          var received = newBalance.minus(testCase.balance).toNumber()
-          assert.equal(received, testCase.expected)
-          done()
+      it(`${testCase.descr} - should send ${testCase.expected} to ${testCase.addr}`, done => {
+        initFailingHelper(testCase, data => {
+          ff.distribute({from: accounts[2]}).catch(done)
+          .then(() => {
+            var newBalance =  web3.eth.getBalance(data.addr)
+            var received = newBalance.minus(data.balance).toNumber()
+            assert.equal(received, data.expected)
+            done()
+          })
         })
       })
-      it(`should owe to ${testCase.addr}`, done => {
-        ff.distribute({from: accounts[2]}).catch(done)
-        .then(() => ff.getOwedTo.call(testCase.addr))
-        .then(value => {
-          assert.equal(value.toNumber(), 5 - testCase.expected)
-          done()
+      it(`${testCase.descr} - should owe to ${testCase.addr}`, done => {
+        initFailingHelper(testCase, data => {
+          ff.distribute({from: accounts[2]}).catch(done)
+          .then(() => ff.getOwedTo.call(data.addr))
+          .then(value => {
+            assert.equal(value.toNumber(), 5 - data.expected)
+            done()
+          })
         })
+
       })
     })
     //...
