@@ -10,18 +10,20 @@
 </head>
 <body ng-controller="FiftyFiftyController as ff">
   <h1>FiftyFifty</h1>
-  <h2>Info</h2>
-  <ul>
-    <li>Contract address: {{ ff.contractAddress }}</li>
-    <li>Contract balance: {{ ff.contractBalance }}</li>
-    <li>Contract owners: {{ ff.owners }}</li>
-    <li>Owners balances: {{ ff.ownersBalances }}</li>
-    <li>Owed to owners: {{ ff.owedBalances }}</li>
-  </ul>
-  <br>
+
+  <div ng-if="ff.contractAddress">
+    <h2>Info</h2>
+    <ul>
+      <li>Contract address: {{ ff.contractAddress }}</li>
+      <li>Contract balance: {{ ff.contractBalance }}</li>
+      <li>Contract owners: {{ ff.owners }}</li>
+      <li>Owners balances: {{ ff.ownersBalances }}</li>
+      <li>Owed to owners: {{ ff.owedBalances }}</li>
+    </ul>
+  </div>
 
   <h2>Controls</h2>
-  <div class="action">
+  <div class="action" ng-if="ff.contractAddress">
     <button ng-click="ff.doRefresh()">Refresh</button>
     <span>You need a manual refresh if you are using a real ethereum node. Not needed with testrpc.
   </div>
@@ -35,24 +37,25 @@
       <span>balance: {{ ff.selectedBalance }}</span>
     </div>
   </div>
-  <div class="action">
-    <label for="addr1">New ownsers (only if no owners): </label>
-    <input id="addr1" type="text" ng-model="ff.setOwnersInputs.addr1">
-    <input id="addr2" type="text" ng-model="ff.setOwnersInputs.addr2">
-    <button ng-click="ff.doSetOwners()">Set</button>
+  <div ng-if="ff.contractAddress">
+    <div class="action">
+      <label for="send-amount">Amount: </label>
+      <input id="send-amount" type="text" ng-model="ff.sendAmountInput">
+      <button ng-click="ff.doSendToContract()">Send</button>
+    </div>
+    <div class="action">
+      <label for="change-address">New address (only owners allowed): </label>
+      <input id="change-address" type="text" ng-model="ff.changeAddressInput">
+      <button ng-click="ff.doChangeAddress()">Change</button>
+    </div>
+    <div class="action"><button ng-click="ff.doDistribute()">Distribute ethers to owners</button></div>
   </div>
   <div class="action">
-    <label for="send-amount">Amount: </label>
-    <input id="send-amount" type="text" ng-model="ff.sendAmountInput">
-    <button ng-click="ff.doSendToContract()">Send</button>
+    <label for="addr1">Owners: </label>
+    <input id="addr1" type="text" ng-model="ff.deployInputs.addr1">
+    <input id="addr2" type="text" ng-model="ff.deployInputs.addr2">
+    <button ng-click="ff.doDeployNewContract()">Deploy a new contract instance</button>
   </div>
-  <div class="action">
-    <label for="change-address">New address (only owners allowed): </label>
-    <input id="change-address" type="text" ng-model="ff.changeAddressInput">
-    <button ng-click="ff.doChangeAddress()">Change</button>
-  </div>
-  <div class="action"><button ng-click="ff.doDistribute()">Distribute ethers to owners</button></div>
-  <div class="action"><button ng-click="ff.doDeployNewContract()">Deploy a new contract instance</button></div>
 
   <div ng-switch on="ff.error" class="error">
     <div ng-switch-when="account">Please select an account originating the transactions.</div>

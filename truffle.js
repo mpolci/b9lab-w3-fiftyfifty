@@ -12,7 +12,6 @@ module.exports = {
     ],
   },
   deploy: [
-    "FiftyFifty",
   ],
   rpc: {
     host: "localhost",

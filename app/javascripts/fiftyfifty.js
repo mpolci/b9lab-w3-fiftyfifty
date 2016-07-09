@@ -13,7 +13,7 @@ angular.module('fiftyFiftyApp')
     selectedAccount: '',
     selectedBalance: '',
     sendAmountInput: '',
-    setOwnersInputs: {
+    deployInputs: {
       addr1: '',
       addr2: ''
     },
@@ -28,7 +28,7 @@ angular.module('fiftyFiftyApp')
     doDeployNewContract: doDeployNewContract
   })
 
-  var contract = FiftyFifty.deployed()
+  var contract = null;
   doRefresh()
 
   web3.eth.getAccounts(function (err, accounts) {
@@ -53,30 +53,32 @@ angular.module('fiftyFiftyApp')
   function doRefresh () {
     self.error = null
     refreshSelectedBalance()
-    self.contractAddress = contract.address
-    web3.eth.getBalance(contract.address, function (err, value) {
-      if (err) return console.error(err)
-      set('contractBalance', value)
-    })
-    contract.getOwners.call()
-    .then(function (owners) {
-      set('owners', owners)
-      ;[0,1].forEach(function (i) {
-        var owner = owners[i];
-        web3.eth.getBalance(owner, function (err, value) {
-          if (err) return console.error(err)
-          setArray('ownersBalances', i, value)
-        })
-        contract.getOwedTo.call(owner)
-        .then(function (value) {
-          setArray('owedBalances', i, value)
-        })
-        .catch(console.error)
+    self.contractAddress = contract && contract.address
+    if (self.contractAddress) {
+      web3.eth.getBalance(contract.address, function (err, value) {
+        if (err) return console.error(err)
+        set('contractBalance', value)
       })
-      // return null to avoid warning message
-      return null
-    })
-    .catch(console.error)
+      contract.getOwners.call()
+      .then(function (owners) {
+        set('owners', owners)
+        ;[0,1].forEach(function (i) {
+          var owner = owners[i];
+          web3.eth.getBalance(owner, function (err, value) {
+            if (err) return console.error(err)
+            setArray('ownersBalances', i, value)
+          })
+          contract.getOwedTo.call(owner)
+          .then(function (value) {
+            setArray('owedBalances', i, value)
+          })
+          .catch(console.error)
+        })
+        // return null to avoid warning message
+        return null
+      })
+      .catch(console.error)
+    }
   }
 
   function doSendToContract () {
@@ -115,13 +117,15 @@ angular.module('fiftyFiftyApp')
   function doDeployNewContract () {
     if (!self.selectedAccount) return selectedAccountError()
 
-    FiftyFifty.new({from: self.selectedAccount})
+    FiftyFifty.new(self.deployInputs.addr1, self.deployInputs.addr2, {from: self.selectedAccount})
     .then(function (newContract) {
       contract = newContract
       doRefresh()
       return null
     })
-    .catch(console.error)
+    .catch(function(e) {
+      handleError(e, 'tx-fail')
+    })
   }
 
   /*********************************************************/
@@ -138,7 +142,7 @@ angular.module('fiftyFiftyApp')
         return method.apply(contract, callopts.args)
       })
       .then(logTxAndRefresh)
-      .catch(e => handleError(e, 'tx-fail'))
+      .catch(function(e) { handleError(e, 'tx-fail') })
     } catch (e) {
       handleError(e, 'call-fail')
     }
@@ -168,9 +172,11 @@ angular.module('fiftyFiftyApp')
 
   function handleError(e, errid) {
     console.error(e)
-    self.error = errid || (e.message && e.message.startsWith('Error: VM Exception while executing eth_call'))
-      ? 'call-fail'
-      : 'generic'
+    self.error = errid || (
+      e.message && e.message.startsWith('Error: VM Exception while executing eth_call')
+        ? 'call-fail'
+        : 'generic'
+    )
     $scope.$apply()
   }
 

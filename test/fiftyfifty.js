@@ -4,35 +4,9 @@ contract('FiftyFifty', accounts => {
   var args
   beforeEach(done => {
     args = { from: accounts[0] }
-    FiftyFifty.new(args).catch(done).then(contract => {
+    FiftyFifty.new(accounts[0], accounts[1], args).catch(done).then(contract => {
       ff = contract
-      ff.setOwners(accounts[0], accounts[1], args)
-        .then(() => done()).catch(done)
-    })
-  })
-  describe('setOwners', () => {
-    it('should set owners', done => {
-      FiftyFifty.deployed().setOwners(accounts[0], accounts[1], args)
-      .then(() => FiftyFifty.deployed().getOwners.call())
-      .then(owners => {
-        assert.equal(owners[0], accounts[0])
-        assert.equal(owners[1], accounts[1])
-        done()
-      }).catch(done)
-    })
-    it('shold not be called two times', done => {
-      var ff
-      FiftyFifty.new(args).catch(done).then(contract => {
-        ff = contract
-        return ff.setOwners(accounts[0], accounts[1], args)
-      })
-      .then(() => {
-        try {
-          ff.setOwners(accounts[2], accounts[3], args)
-          .then(() => done('error: setOwners called two times'))
-          .catch(() => done())
-        } catch (e) { done() }
-      })
+      done()
     })
   })
 
@@ -175,17 +149,14 @@ contract('FiftyFifty', accounts => {
     ]
     beforeEach(done => {
       args = { from: accounts[0] }
-      FiftyFifty.new(args)
-      .then(contract => {
-        ff = contract
-        return FailTransfer.new(args)
-      })
+      FailTransfer.new(args)
       .then(contract => {
         failContract = contract
         tests[0].addr = contract.address
-        return ff.setOwners(failContract.address, accounts[1], args)
+        return FiftyFifty.new(failContract.address, accounts[1], args)
       })
-      .then(() => {
+      .then(contract => {
+        ff = contract
         var txid = web3.eth.sendTransaction({from: accounts[0], to: ff.address, value: 10})
         assert.isString(txid)
         tests[0].balance = web3.eth.getBalance(tests[0].addr)
