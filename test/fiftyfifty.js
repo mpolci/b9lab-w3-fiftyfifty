@@ -5,8 +5,39 @@ contract('FiftyFifty', accounts => {
   beforeEach(done => {
     args = { from: accounts[0] }
     FiftyFifty.new(accounts[0], accounts[1], args).catch(done).then(contract => {
-      ff = contract
-      done()
+      if (contract) {
+        ff = contract
+        done()
+      }
+    })
+  })
+
+  describe('contructor', () => {
+    it('should fail with address 0 on firt parameter', done => {
+      try {
+        FiftyFifty.new(0, accounts[1], args).catch(() => done()).then(contract => {
+          contract && done('Error, contract created')
+        })
+      } catch (e) {
+        done()
+      }
+    })
+    it('should fail with address 0 on second parameter', done => {
+      try {
+        FiftyFifty.new(accounts[0], 0, args).catch(() => done()).then(contract => {
+          contract && done('Error, contract created')
+        })
+      } catch (e) {
+        done()
+      }
+    })
+    it('should success', done => {
+      try {
+        FiftyFifty.new(accounts[0], accounts[1], args).then(() => done())
+        .catch(done)
+      } catch (e) {
+        done(e)
+      }
     })
   })
 
@@ -161,6 +192,7 @@ contract('FiftyFifty', accounts => {
         return FiftyFifty.new(contract.address, accounts[1], args)
       })
       .then(contract => {
+        assert.isNotNull(contract, 'contract was not created')
         ff = contract
         var txid = web3.eth.sendTransaction({from: accounts[0], to: ff.address, value: 10})
         assert.isString(txid)
@@ -195,5 +227,6 @@ contract('FiftyFifty', accounts => {
     })
     //...
   })
+  
 
 })
