@@ -4,13 +4,15 @@ contract FiftyFifty {
 
   mapping (address => uint) unsent;
 
+  event failed(address indexed dest, uint amount);
+
   function FiftyFifty(address first, address second) {
     if (first == 0 || second == 0) throw;
     A = first;
     B = second;
   }
 
-  function getOwners() returns (address[2]) {
+  function getOwners() constant returns (address[2]) {
     return [A, B];
   }
 
@@ -36,7 +38,7 @@ contract FiftyFifty {
     return address(this).balance - unsent[A] - unsent[B];
   }
 
-  function getOwedTo(address to) returns (uint) {
+  function getOwedTo(address to) constant returns (uint) {
     if (to != A && to != B) throw;
     return getToDistribute() / 2 + unsent[to];
   }
@@ -49,6 +51,7 @@ contract FiftyFifty {
         return true;
       } else {
         unsent[dest] = amount;
+        failed(dest, amount);
       }
     }
     return false;
