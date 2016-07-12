@@ -227,6 +227,63 @@ contract('FiftyFifty', accounts => {
     })
     //...
   })
-  
+  describe.only('distribute after 2 failing address', () => {
+    var fc = []
+    var balances = []
+    beforeEach(done => {
+      args = { from: accounts[2] }
+      FailTransfer.new(args)
+      .then(contract => {
+        if (!contract) done('contract error')
+        fc[0] = contract
+        return FailTransfer.new(args)
+      })
+      .then(contract => {
+        if (!contract) done('contract error')
+        fc[1] = contract
+        return FiftyFifty.new(fc[0].address, fc[1].address, args)
+      })
+      .then(contract => {
+        ff = contract
+        balances[0] = web3.eth.getBalance(accounts[0])
+        balances[1] = web3.eth.getBalance(accounts[1])
+        done()
+      })
+      .catch(done)
+    })
+
+    it('test 1', done => {
+      web3.eth.sendTransaction({from: accounts[2], to: ff.address, value: 2})
+      ff.contract.distribute.sendTransaction({from: accounts[2], to: ff.address, value: 10})
+
+      var balance =  web3.eth.getBalance(ff.address).toNumber()
+      assert.equal(balance, 12)
+
+      ff.getOwedTo(fc[0].address)
+      .then(value => {
+        assert.equal(value, 6)
+
+        return ff.getOwedTo(fc[1].address)
+      }).then(value => {
+        assert.equal(value, 6)
+
+        return fc[0].setFail(false, args)
+      })
+      .then(() => fc[1].setFail(false, args))
+      .then(() => {
+
+        ff.contract.distribute.sendTransaction({from: accounts[2], to: ff.address, value: 10})
+
+        var balance =  web3.eth.getBalance(ff.address).toNumber()
+        assert.equal(balance, 0, 'Balance not distributed')
+        var received0 = web3.eth.getBalance(fc[0].address).toNumber()
+        var received1 = web3.eth.getBalance(fc[1].address).toNumber()
+        assert.equal(received0, 11, 'Invalid amount received from account 0')
+        assert.equal(received1, 11, 'Invalid amount received from account 1')
+        done()
+      })
+    })
+
+  })
 
 })
